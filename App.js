@@ -8,12 +8,25 @@ import test from 'tape'
 //
 import randomAccess from 'random-access-storage'
 import RNFS from 'react-native-fs'
+import pathAPI from 'path'
 
 async function open(name) {
+  await ensureFileFolder(name)
+
   const exists = await RNFS.exists(name)
   if (!exists) {
     await RNFS.writeFile(name, '', 'utf8')
   }
+}
+
+async function ensureFileFolder(name) {
+  const dir = pathAPI.dirname(name)
+
+  const exists = await RNFS.exists(dir)
+
+  if(!exists) await ensureFileFolder(dir)
+
+  await RNFS.mkdir(dir)
 }
 
 function fileReader(name) {
@@ -29,10 +42,14 @@ function fileReader(name) {
       )
     },
     read(req) {
-      RNFS.read(name, req.length, req.offset, 'base64').then(
+      RNFS.read(name, req.size, req.offset, 'base64').then(
         data => {
           const buffer = Buffer.from(data, 'base64')
-          req.callback(null, buffer)
+          if(buffer.length !== req.size) {
+            req.callback(new Error('Ranger not satisfiable'))
+          } else {
+            req.callback(null, buffer)
+          }
         },
         err => {
           req.callback(err)
@@ -60,9 +77,11 @@ export default class App extends Component {
   constructor(props) {
     super(props)
     this.state = { chunks: [], err: null }
+    this.randomId = ('' + Math.random()).substr(2, 6)
   }
 
   componentDidMount() {
+
     test
       .createStream()
       .on('data', data => {
@@ -73,8 +92,7 @@ export default class App extends Component {
       })
     randomAccessTest(
       (name, options, callback) => {
-        const randomId = ('' + Math.random()).substr(2, 6)
-        const file = `${RNFS.DocumentDirectoryPath}/${randomId}-${name}`
+        const file = `${RNFS.DocumentDirectoryPath}/${this.randomId}-${name}`
         callback(fileReader(file))
       },
       {

@@ -10,6 +10,7 @@
   "dependencies": {
     "@tradle/react-native-http": "^2.0.1",
     "assert": "^1.4.1",
+    "base64-arraybuffer": "^0.1.5",
     "browserify-zlib": "^0.1.4",
     "buffer": "^4.9.1",
     "console-browserify": "^1.1.0",
@@ -19,6 +20,7 @@
     "events": "^1.1.1",
     "https-browserify": "0.0.1",
     "patch-package": "^6.0.5",
+    "path": "^0.12.7",
     "path-browserify": "0.0.0",
     "process": "^0.11.10",
     "punycode": "^1.4.1",
